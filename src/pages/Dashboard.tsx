@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { FaUserCheck, FaBell, FaUserTimes } from "react-icons/fa";
+import { FaUserCheck, FaBell, FaUserTimes, FaVideo } from "react-icons/fa";
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, PieChart, Pie, Cell } from "recharts";
 import videojs from "video.js";
 import "video.js/dist/video-js.css";
@@ -79,26 +79,24 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (!videoNodeRef.current) return;
-  
+
     if (playerRef.current) {
       playerRef.current.pause();
       playerRef.current.src({ src: selectedCamera.src, type: 'video/mp4' });
       playerRef.current.load();
-      playerRef.current.play?.().catch(() => {}); // optional chaining
+      playerRef.current.play?.().catch(() => {});
       return;
     }
-  
+
     const player = videojs(videoNodeRef.current, { autoplay: true, controls: true, muted: true });
     player.src({ src: selectedCamera.src, type: 'video/mp4' });
-    // player.play?.().catch(() => {}); // optional chaining
     playerRef.current = player;
-  
+
     return () => {
       player.dispose();
       playerRef.current = null;
     };
   }, [selectedCamera]);
-  
 
   const headerHeight = 64;
   const footerHeight = 40;
@@ -106,28 +104,33 @@ export default function Dashboard() {
   const quadrantStyle: React.CSSProperties = {
     overflow:'auto',
     padding:12,
-    borderRadius:12,
-    background:'#fff',
+    borderRadius:16,
+    background:'rgba(255,255,255,0.15)',
+    backdropFilter:'blur(12px)',
     display:'flex',
     flexDirection:'column',
     minHeight:0,
     gap:8,
-    boxShadow:'0 2px 8px rgba(0,0,0,0.05)',
+    boxShadow:'0 8px 24px rgba(0,0,0,0.08)',
     height:500
   };
 
   const kpiCardStyle: React.CSSProperties = {
     flex:1,
-    padding:8,
-    borderRadius:10,
-    background:'#f3f4f6',
+    padding:12,
+    borderRadius:12,
     fontWeight:600,
     textAlign:'center',
-    boxShadow:'0 1px 4px rgba(0,0,0,0.08)'
+    color:'#fff',
+    display:'flex',
+    alignItems:'center',
+    justifyContent:'space-between',
+    cursor:'pointer',
+    transition:'all 0.3s'
   };
 
   return (
-    <div style={{height:'100vh', display:'flex', flexDirection:'column', background:'#f5f7fa'}}>
+    <div style={{display:'flex', flexDirection:'column', background:'#f0f2f5'}}>
       {/* Fixed Header */}
       <header style={{height:headerHeight, background:'#fff', boxShadow:'0 2px 6px rgba(0,0,0,0.05)', display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 24px', position:'fixed', top:0, width:'100%', zIndex:10}}>
         <div style={{fontWeight:700, fontSize:20}}>PaarvAI Dashboard</div>
@@ -135,7 +138,7 @@ export default function Dashboard() {
       </header>
 
       {/* Main Grid */}
-      <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gridTemplateRows:'1fr 1fr', gap:12, padding:12, paddingTop:12, paddingBottom:12, flex:1, flexGrow:1}}>
+      <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gridTemplateRows:'1fr 1fr', gap:12, padding:12, paddingTop:12, flex:1}}>
         {/* Q1: Live Detections */}
         <div style={quadrantStyle}>
           <div style={{display:'flex', justifyContent:'space-between', fontWeight:700, fontSize:16, marginBottom:8}}>
@@ -178,6 +181,7 @@ export default function Dashboard() {
             ))}
           </div>
         </div>
+
         {/* Q2: Person Profile & History */}
         <div style={quadrantStyle}>
           <div style={{fontWeight:700, marginBottom:4}}>Person Profile & History</div>
@@ -219,80 +223,76 @@ export default function Dashboard() {
 
         {/* Q3: CCTV Playback */}
         <div style={quadrantStyle}>
-          <div
-            style={{
-              fontWeight: 700,
-              marginBottom: 4,
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-            }}
-          >
+          <div style={{fontWeight:700, marginBottom:4, display:'flex', justifyContent:'space-between', alignItems:'center'}}>
             CCTV Playback
           </div>
-          <div style={{ flex: 1, overflow: 'hidden', borderRadius: 12 }}>
+          <div style={{flex:1, borderRadius:12, overflow:'hidden'}}>
             <video
-              src="https://www.w3schools.com/html/mov_bbb.mp4" // replace with your direct video URL
-              style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 12 }}
-              autoPlay
-              muted
-              loop
-              controls
-              playsInline
+              src="https://www.w3schools.com/html/mov_bbb.mp4"
+              style={{width:'100%', height:'100%', objectFit:'cover', borderRadius:12}}
+              autoPlay muted loop controls playsInline
             />
           </div>
         </div>
 
-
         {/* Q4: Alerts & Analytics */}
-        <div style={quadrantStyle}>
-          <div style={{fontWeight:700, marginBottom:4}}>Alerts & Analytics</div>
-          <div style={{flex:1, overflowY:'auto', display:'flex', flexDirection:'column', gap:6}}>
-            <div style={{display:'flex', gap:4}}>
-              <div style={kpiCardStyle}>Total Alerts: {detections.filter(d=>d.status==='Detected').length}</div>
-              <div style={kpiCardStyle}>High Priority: {detections.filter(d=>d.priority==='High').length}</div>
-              <div style={kpiCardStyle}>Medium Priority: {detections.filter(d=>d.priority==='Medium').length}</div>
-              <div style={kpiCardStyle}>Low Priority: {detections.filter(d=>d.priority==='Low').length}</div>
-            </div>
-            <div style={{flex:1, overflowY:'auto'}}>
-              {detections.slice(0,10).map(d=>(
-                <div key={d.id} style={{padding:4, borderRadius:6, background:'rgba(0,0,0,0.03)', marginBottom:4, display:'flex', justifyContent:'space-between'}}>
-                  <div>{d.type==='Stranger'?'Unknown':'Known'} • {d.cameraName}</div>
-                  <div>ID {d.id}</div>
+        <div style={{ ...quadrantStyle, padding:16 }}>
+          <div style={{ fontWeight:700, marginBottom:12, fontSize:18, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+            <span>Alerts & Analytics</span>
+            <FaBell size={20} color="#ff5722"/>
+          </div>
+
+          {/* Gradient KPIs */}
+          <div style={{ display:'flex', gap:12, marginBottom:12 }}>
+            <div style={{ ...kpiCardStyle, background:'linear-gradient(135deg, #10b981, #06b6d4)' }}>Total Alerts {detections.filter(d => d.status==='Detected').length}</div>
+            <div style={{ ...kpiCardStyle, background:'linear-gradient(135deg, #ef4444, #f87171)' }}>High Priority {detections.filter(d => d.priority==='High').length}</div>
+            <div style={{ ...kpiCardStyle, background:'linear-gradient(135deg, #fbbf24, #facc15)' }}>Medium Priority {detections.filter(d => d.priority==='Medium').length}</div>
+            <div style={{ ...kpiCardStyle, background:'linear-gradient(135deg, #3b82f6, #60a5fa)' }}>Low Priority {detections.filter(d => d.priority==='Low').length}</div>
+          </div>
+
+          {/* Recent Alerts */}
+          <div style={{flex:1, overflowY:'auto'}}>
+            {detections.slice(0,10).map(d=>(
+              <div key={d.id} style={{padding:8, borderRadius:12, background:'rgba(0, 0, 0, 0.03)', marginBottom:6, display:'flex', justifyContent:'space-between', alignItems:'center', transition:'0.2s', cursor:'pointer'}}
+                onMouseEnter={e=>{(e.currentTarget as HTMLDivElement).style.background='rgba(0, 0, 0, 0.03)'}}
+                onMouseLeave={e=>{(e.currentTarget as HTMLDivElement).style.background='rgba(0, 0, 0, 0.03)'}}
+              >
+                <div style={{display:'flex', gap:6, alignItems:'center'}}>
+                  {d.type==='Stranger'?<FaUserTimes color="#ef4444"/>:<FaUserCheck color="#10b981"/>}
+                  <span>{d.type==='Stranger'?'Unknown':'Known'} • {d.cameraName}</span>
                 </div>
-              ))}
+                <div style={{fontWeight:500, color:'#18181b'}}>ID {d.id}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Charts */}
+          <div style={{display:'flex', gap:12, marginTop:8}}>
+            <div style={{flex:1, height:150}}>
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={trendData}>
+                  <XAxis dataKey="t" stroke="#9ca3af"/>
+                  <YAxis stroke="#9ca3af"/>
+                  <Tooltip contentStyle={{background:'rgba(0,0,0,0.7)', borderRadius:8, border:'none'}}/>
+                  <Line type="monotone" dataKey="valid" stroke="#10b981" strokeWidth={3} dot={{r:3}}/>
+                  <Line type="monotone" dataKey="stranger" stroke="#ef4444" strokeWidth={3} dot={{r:3}}/>
+                </LineChart>
+              </ResponsiveContainer>
             </div>
-            <div style={{display:'flex', gap:4}}>
-              <div style={{flex:1, height:120}}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={trendData}>
-                    <XAxis dataKey="t"/>
-                    <YAxis/>
-                    <Tooltip/>
-                    <Line type="monotone" dataKey="valid" stroke="#10b981" strokeWidth={2} dot={false}/>
-                    <Line type="monotone" dataKey="stranger" stroke="#ef4444" strokeWidth={2} dot={false}/>
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-              <div style={{width:120, height:120}}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie data={pieData} dataKey="value" innerRadius={20} outerRadius={50} label>
-                      {pieData.map((_,idx)=><Cell key={idx}/>)}
-                    </Pie>
-                    <Tooltip/>
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
+            <div style={{width:150, height:150}}>
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie data={pieData} dataKey="value" innerRadius={30} outerRadius={60} paddingAngle={2}>
+                    {pieData.map((entry, idx)=><Cell key={idx} fill={['#10b981','#ef4444','#fbbf24','#3b82f6'][idx%4]}/>)}
+                  </Pie>
+                  <Tooltip contentStyle={{background:'rgba(0,0,0,0.7)', borderRadius:8, border:'none'}}/>
+                </PieChart>
+              </ResponsiveContainer>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Fixed Footer */}
-      <footer style={{height:footerHeight, background:'#fff', boxShadow:'0 -2px 6px rgba(0,0,0,0.05)', display:'flex', alignItems:'center', justifyContent:'center', position:'fixed', bottom:0, width:'100%'}}>
-        &copy; 2025 PaarvAI
-      </footer>
+      </div>
     </div>
   );
 }

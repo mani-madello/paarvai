@@ -9,7 +9,7 @@ export default function App() {
   }, [dark]);
 
   return (
-    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       {/* Fixed Header */}
       <header
         className="header"
