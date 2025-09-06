@@ -11,7 +11,7 @@ body{background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,syst
 .header{height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;background:linear-gradient(90deg,#071023,rgba(7,16,35,0.6));color:var(--text)}
 .footer{height:32px;display:flex;align-items:center;justify-content:center;color:var(--muted)}
 
-.container{height:calc(100vh - 96px);padding:18px;box-sizing:border-box}
+.container{height:calc(100vh - 96px);padding:18px;box-sizing:border-box; width:100%; max-width: 100% !important}
 
 /* 2x2 fixed equal quadrants */
 .grid-2x2{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:18px;height:100%}
