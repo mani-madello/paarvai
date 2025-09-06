@@ -1,8 +1,9 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { FaUserCheck, FaBell, FaUserTimes, FaVideo } from "react-icons/fa";
+import { FaUserCheck, FaBell, FaUserTimes } from "react-icons/fa";
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, PieChart, Pie, Cell } from "recharts";
 import videojs from "video.js";
 import "video.js/dist/video-js.css";
+import "./Dashboard.css"; // for responsive grid
 
 type Detection = {
   id: string;
@@ -99,7 +100,6 @@ export default function Dashboard() {
   }, [selectedCamera]);
 
   const headerHeight = 64;
-  const footerHeight = 40;
 
   const quadrantStyle: React.CSSProperties = {
     overflow:'auto',
@@ -112,7 +112,6 @@ export default function Dashboard() {
     minHeight:0,
     gap:8,
     boxShadow:'0 8px 24px rgba(0,0,0,0.08)',
-    height:500
   };
 
   const kpiCardStyle: React.CSSProperties = {
@@ -138,9 +137,9 @@ export default function Dashboard() {
       </header>
 
       {/* Main Grid */}
-      <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gridTemplateRows:'1fr 1fr', gap:12, padding:12, paddingTop:12, flex:1}}>
+      <div className="dashboard-grid" style={{padding:12, paddingTop:headerHeight+12}}>
         {/* Q1: Live Detections */}
-        <div style={quadrantStyle}>
+        <div style={{...quadrantStyle, height:"100%"}}>
           <div style={{display:'flex', justifyContent:'space-between', fontWeight:700, fontSize:16, marginBottom:8}}>
             Live Detections
             <select value={activeLocation} onChange={e=>setPage(LOCATIONS.indexOf(e.target.value))} style={{borderRadius:6, padding:4}}>
@@ -183,7 +182,7 @@ export default function Dashboard() {
         </div>
 
         {/* Q2: Person Profile & History */}
-        <div style={quadrantStyle}>
+        <div style={{...quadrantStyle, height:"100%"}}>
           <div style={{fontWeight:700, marginBottom:4}}>Person Profile & History</div>
           {selected ? (
             <div style={{flex:1, display:'flex', flexDirection:'column', gap:6}}>
@@ -222,21 +221,22 @@ export default function Dashboard() {
         </div>
 
         {/* Q3: CCTV Playback */}
-        <div style={quadrantStyle}>
-          <div style={{fontWeight:700, marginBottom:4, display:'flex', justifyContent:'space-between', alignItems:'center'}}>
-            CCTV Playback
-          </div>
+        <div style={{...quadrantStyle, height:"100%"}}>
+          <div style={{fontWeight:700, marginBottom:4}}>CCTV Playback</div>
           <div style={{flex:1, borderRadius:12, overflow:'hidden'}}>
             <video
-              src="https://www.w3schools.com/html/mov_bbb.mp4"
+              src={selectedCamera.src}
               style={{width:'100%', height:'100%', objectFit:'cover', borderRadius:12}}
               autoPlay muted loop controls playsInline
             />
           </div>
+          <select onChange={e=>setSelectedCamera(videoSources.find(v=>v.id===e.target.value)!)} value={selectedCamera.id} style={{marginTop:8, borderRadius:6, padding:4}}>
+            {videoSources.map(v=><option key={v.id} value={v.id}>{v.name}</option>)}
+          </select>
         </div>
 
         {/* Q4: Alerts & Analytics */}
-        <div style={{ ...quadrantStyle, padding:16 }}>
+        <div style={{...quadrantStyle, height:"100%", padding:16}}>
           <div style={{ fontWeight:700, marginBottom:12, fontSize:18, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
             <span>Alerts & Analytics</span>
             <FaBell size={20} color="#ff5722"/>
@@ -253,10 +253,7 @@ export default function Dashboard() {
           {/* Recent Alerts */}
           <div style={{flex:1, overflowY:'auto'}}>
             {detections.slice(0,10).map(d=>(
-              <div key={d.id} style={{padding:8, borderRadius:12, background:'rgba(0, 0, 0, 0.03)', marginBottom:6, display:'flex', justifyContent:'space-between', alignItems:'center', transition:'0.2s', cursor:'pointer'}}
-                onMouseEnter={e=>{(e.currentTarget as HTMLDivElement).style.background='rgba(0, 0, 0, 0.03)'}}
-                onMouseLeave={e=>{(e.currentTarget as HTMLDivElement).style.background='rgba(0, 0, 0, 0.03)'}}
-              >
+              <div key={d.id} style={{padding:8, borderRadius:12, background:'rgba(0, 0, 0, 0.03)', marginBottom:6, display:'flex', justifyContent:'space-between', alignItems:'center', transition:'0.2s', cursor:'pointer'}}>
                 <div style={{display:'flex', gap:6, alignItems:'center'}}>
                   {d.type==='Stranger'?<FaUserTimes color="#ef4444"/>:<FaUserCheck color="#10b981"/>}
                   <span>{d.type==='Stranger'?'Unknown':'Known'} • {d.cameraName}</span>
