@@ -77,21 +77,28 @@ export default function Dashboard() {
     ), [detections, activeLocation, searchQuery, selectedDate]
   );
 
-  useEffect(()=>{
-    if(!videoNodeRef.current) return;
-    if(playerRef.current){
+  useEffect(() => {
+    if (!videoNodeRef.current) return;
+  
+    if (playerRef.current) {
       playerRef.current.pause();
       playerRef.current.src({ src: selectedCamera.src, type: 'video/mp4' });
       playerRef.current.load();
-      playerRef.current.play().catch(()=>{});
+      playerRef.current.play?.().catch(() => {}); // optional chaining
       return;
     }
-    const player = videojs(videoNodeRef.current,{autoplay:true,controls:true,muted:true});
-    player.src({ src: selectedCamera.src, type:'video/mp4' });
-    player.play().catch(()=>{});
+  
+    const player = videojs(videoNodeRef.current, { autoplay: true, controls: true, muted: true });
+    player.src({ src: selectedCamera.src, type: 'video/mp4' });
+    // player.play?.().catch(() => {}); // optional chaining
     playerRef.current = player;
-    return ()=>{player.dispose(); playerRef.current=null;}
-  },[selectedCamera]);
+  
+    return () => {
+      player.dispose();
+      playerRef.current = null;
+    };
+  }, [selectedCamera]);
+  
 
   const headerHeight = 64;
   const footerHeight = 40;
