@@ -1,274 +1,280 @@
-import React, { useMemo, useState, useEffect } from "react";
-import { FaUserCheck, FaUserTimes, FaBell } from "react-icons/fa";
-import "./Dashboard.css"; // keep existing base styles
+import React, { useEffect, useState } from "react";
+import { Line } from "react-chartjs-2";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Tooltip,
+  Legend,
+} from "chart.js";
+import "./dashboard.css";
 
-type Detection = {
-  id: string;
-  type: "Stranger" | "Valid";
-  name?: string;
-  location: string;
-  time: string;
-  thumb: string;
+// Register chart.js components
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Legend);
+
+// Dummy KPI data
+const kpiData: Record<string, any> = {
+  Chennai: {
+    Tambaram: { total: 40, day: 82, returning: 4, incidents: 0 },
+    "Anna Nagar": { total: 55, day: 120, returning: 10, incidents: 2 },
+  },
+  Madurai: {
+    Tambaram: { total: 22, day: 60, returning: 3, incidents: 1 },
+    "Anna Nagar": { total: 30, day: 95, returning: 7, incidents: 0 },
+  },
 };
 
-export default function Dashboard() {
-  const LOCATIONS = ["All", "Chennai", "Madurai"];
-  const [activeLocation, setActiveLocation] = useState("All");
-  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+// Repeat customers
+const repeatCustomers = [
+  { name: "Madhavan Elango", time: "11:35 am", snapshot: "https://picsum.photos/120/80?random=1" },
+  { name: "Sundar Swaminathan", time: "12:10 pm", snapshot: "https://picsum.photos/120/80?random=2" },
+  { name: "Rohit Sharma", time: "12:50 pm", snapshot: "https://picsum.photos/120/80?random=3" },
+  { name: "Anita Kumari", time: "1:15 pm", snapshot: "https://picsum.photos/120/80?random=4" },
+  { name: "Vikram Patel", time: "1:45 pm", snapshot: "https://picsum.photos/120/80?random=5" },
+  { name: "Priya Reddy", time: "2:10 pm", snapshot: "https://picsum.photos/120/80?random=6" },
+];
+
+// Action Points
+const actionPoints = [
+  "Component changeover time 129% above benchmark",
+  "Cycle time deviating 11% over benchmark",
+  "PLY 1 inventory low (26 min left)",
+  "Temperature sensor alert in Zone 3",
+  "Maintenance required for Conveyor B",
+  "Unexpected delay in shipment #4521",
+];
+
+// CCTV feeds
+const cctvFeeds = [
+  "https://www.youtube.com/embed/2gY_H8Qszzs",
+  "https://www.youtube.com/watch?v=qfDUleaigsI",
+  "https://www.youtube.com/watch?v=pLwaW2ZiZ8w",
+  "https://www.youtube.com/watch?v=drQxPqjxS4s&t=7s"
+];
+
+const Dashboard: React.FC = () => {
+  const [location, setLocation] = useState("Chennai");
+  const [shop, setShop] = useState("Tambaram");
+
+  const metrics = kpiData[location][shop];
+
+  const sparklineData = {
+    labels: Array.from({ length: 7 }, (_, i) => `Day ${i + 1}`),
+    datasets: [
+      {
+        data: Array.from({ length: 7 }, () => Math.floor(Math.random() * 100)),
+        borderColor: "#3b82f6",
+        backgroundColor: "rgba(59,130,246,0.2)",
+        fill: true,
+        tension: 0.3,
+      },
+    ],
+  };
+
+  const [windowHeight, setWindowHeight] = useState(window.innerHeight);
 
   useEffect(() => {
-    const handleResize = () => setWindowWidth(window.innerWidth);
+    const handleResize = () => setWindowHeight(window.innerHeight);
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const initialDetections: Detection[] = [
-    { id: "1", type: "Valid", name: "Madhavan Elango", location: "Chennai - loc 1", time: "10:32 AM", thumb: "https://picsum.photos/seed/ravi/92/92" },
-    { id: "2", type: "Stranger", location: "Madurai - loc 3", time: "11:05 AM", thumb: "https://picsum.photos/seed/stranger/92/92" },
-    { id: "3", type: "Stranger", location: "Madurai - loc 1", time: "11:45 AM", thumb: "https://picsum.photos/seed/theft/92/92" },
-    { id: "4", type: "Valid", name: "Anita Sharma", location: "Chennai - loc 2", time: "12:10 PM", thumb: "https://picsum.photos/seed/anita/92/92" },
-  ];
-  const [selected, setSelected] = useState<Detection | null>(initialDetections[0]);
-
-  const filtered = useMemo(
-    () =>
-      initialDetections.filter(
-        (d) => activeLocation === "All" || d.location.includes(activeLocation)
-      ),
-    [activeLocation]
-  );
-
   const quadrantStyle: React.CSSProperties = {
+    flex: 1,
+    background: "#0b1220",
+    color: "#fff",
+    borderRadius: 12,
     padding: 16,
-    borderRadius: 16,
-    background: "rgba(255,255,255,0.15)",
-    backdropFilter: "blur(12px)",
     display: "flex",
     flexDirection: "column",
-    minHeight: 0,
-    boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
+    gap: 12,
+    minHeight: windowHeight / 2 - 32, // dynamically half of window height minus gaps/padding
   };
-
-  const kpiCardStyle: React.CSSProperties = {
+  
+  const scrollableContent: React.CSSProperties = {
+    overflowY: "auto",
     flex: 1,
-    padding: 12,
-    borderRadius: 12,
-    fontWeight: 600,
-    textAlign: "center",
-    color: "#fff",
+    paddingRight: 4, // small padding for scrollbar
   };
-
-  const isMobile = windowWidth <= 768;
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh", background: "#0b1220", color: "#fff" }}>
-      {/* Grid */}
-      <div
-        className="dashboard-grid"
-        style={{
-          flex: 1,
-          padding: 12,
-          display: "grid",
-          gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
-          gridTemplateRows: "1fr 1fr",
-          gap: 12,
-        }}
-      >
-        {/* Q1: Live Detections */}
-        <div style={quadrantStyle}>
-          <div style={{ display: "flex", justifyContent: "space-between", fontWeight: 700, fontSize: 16 }}>
-            Live Detections
-            <select
-              value={activeLocation}
-              onChange={(e) => setActiveLocation(e.target.value)}
-              style={{ borderRadius: 6, color: 'black',padding: isMobile ? "8px" : "4px", fontSize: isMobile ? 16 : 12 }}
-            >
-              {LOCATIONS.map((loc) => (
-                <option key={loc}>{loc}</option>
-              ))}
-            </select>
-          </div>
-
-          <div style={{ display: "flex", gap: 8, margin: "12px 0", flexDirection: isMobile ? "column" : "row" }}>
-            <div style={{ ...kpiCardStyle, background: "linear-gradient(135deg,#10b981,#34d399)" }}>
-               Valid {filtered.filter((d) => d.type === "Valid").length}
+    <div
+      className="dashboard-container"
+      style={{
+        display: "grid",
+        gridTemplateColumns: "1fr 1fr",
+        gridTemplateRows: "1fr 1fr",
+        gap: 16,
+        padding: 16,
+        height: "100vh",
+        background: "#001f3f",
+      }}
+    >
+      {/* Q1 - KPIs + Sparkline */}
+      <div style={quadrantStyle}>
+        <div style={{ marginBottom: 8 }}>
+          {/* Filters */}
+          <div style={{ display: "flex", gap: "8px" }}>
+            <div>
+              <label className="block text-sm text-gray-300">Location</label>
+              <select
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                style={{ background: "#1e293b", color: "#fff", padding: "4px 8px", borderRadius: "8px" }}
+              >
+                {Object.keys(kpiData).map((loc) => (
+                  <option key={loc}>{loc}</option>
+                ))}
+              </select>
             </div>
-            <div style={{ ...kpiCardStyle, background: "linear-gradient(135deg,#ef4444,#f87171)" }}>
-               Strangers {filtered.filter((d) => d.type === "Stranger").length}
+            <div>
+              <label className="block text-sm text-gray-300">Shop</label>
+              <select
+                value={shop}
+                onChange={(e) => setShop(e.target.value)}
+                style={{ background: "#1e293b", color: "#fff", padding: "4px 8px", borderRadius: "8px" }}
+              >
+                {Object.keys(kpiData[location]).map((s) => (
+                  <option key={s}>{s}</option>
+                ))}
+              </select>
             </div>
           </div>
+        </div>
 
-          <div style={{ flex: 1, overflowY: "auto" }}>
-            {filtered.map((d) => (
+        {/* Scrollable KPI + Sparkline */}
+        <div style={scrollableContent}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", marginBottom: "12px" }}>
+            {[
+              { label: "Total Customers", value: metrics.total },
+              { label: "Day Customers", value: metrics.day },
+              { label: "Returning Customers", value: metrics.returning },
+              { label: "Incidents", value: metrics.incidents },
+            ].map((item) => (
               <div
-                key={d.id}
-                onClick={() => setSelected(d)}
+                key={item.label}
                 style={{
-                  display: "flex",
-                  alignItems: "center",
-                  padding: isMobile ? 12 : 8,
-                  borderRadius: 12,
-                  marginBottom: 6,
-                  background: d.id === selected?.id ? "rgba(255,106,0,0.15)" : "rgba(255,255,255,0.25)",
-                  cursor: "pointer",
-                  transition: "0.2s",
+                  padding: "8px",
+                  background: "rgba(255,255,255,0.05)",
+                  borderRadius: 8,
                 }}
               >
-                <img
-                  src={d.thumb}
-                  style={{ width: isMobile ? 56 : 48, height: isMobile ? 56 : 48, borderRadius: "50%", objectFit: "cover" }}
-                />
-                <div style={{ marginLeft: 8 }}>
-                  <div style={{ fontWeight: 600, fontSize: isMobile ? 16 : 14 }}>{d.name ?? "Unknown"}</div>
-                  <div style={{ fontSize: isMobile ? 14 : 12, color: "#ddd" }}>
-                    {d.location} • {d.time}
-                  </div>
-                </div>
+                <h3 style={{ fontSize: "0.9rem", color: "#aaa" }}>{item.label}</h3>
+                <div style={{ fontSize: "1.5rem", fontWeight: "600" }}>{item.value}</div>
               </div>
             ))}
           </div>
-        </div>
 
-        {/* Q2: Person Profile */}
-        <div style={quadrantStyle}>
-          <div style={{ fontWeight: 700, marginBottom: 8, fontSize: 16 }}>Person Profile</div>
-          {selected ? (
-            <div>
-              <img
-                src={selected.thumb}
-                style={{ width: "100%", height: isMobile ? 220 : 180, objectFit: "cover", borderRadius: 12 }}
-              />
-              <div style={{ marginTop: 12 }}>
-                <div style={{ fontWeight: 600, fontSize: isMobile ? 18 : 16 }}>
-                  {selected.name ?? "Unknown"}
-                </div>
-                <div style={{ fontSize: isMobile ? 14 : 12, color: "#ddd" }}>{selected.location}</div>
-                <div style={{ fontSize: isMobile ? 13 : 12, marginTop: 4 }}>
-                  Detected at {selected.time}
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div>Select a detection from left panel</div>
-          )}
-        </div>
-
-        {/* Q3: CCTV Playback */}
-        <div style={quadrantStyle}>
-          <div style={{ fontWeight: 700, marginBottom: 8, fontSize: 16 }}>Entrance CCTV</div>
-
-          <div style={{ position: "relative", paddingTop: "56.25%", borderRadius: 12, overflow: "hidden" }}>
-            <iframe
-              src="https://www.youtube.com/embed/2gY_H8Qszzs?autoplay=1&mute=1&loop=1&playlist=2gY_H8Qszzs"
-              style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                width: "100%",
-                height: "100%",
-                border: 0,
+          {/* Sparkline */}
+          <div style={{ height: "100px" }}>
+            <h3 style={{ fontSize: "0.9rem", color: "#aaa", marginBottom: "4px" }}>Customer Trend</h3>
+            <Line
+              data={sparklineData}
+              options={{
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: { x: { display: false }, y: { display: false } },
+                plugins: { legend: { display: false } },
               }}
-              allow="autoplay; encrypted-media"
-              allowFullScreen
-              title="CCTV Live Feed"
             />
           </div>
         </div>
-
-        {/* Q4: Incidents */}
-        <div style={{ ...quadrantStyle, position: "relative", color: "#fff", overflow: "hidden" }}>
-          <div
-            style={{
-              backgroundImage: "url('/assets/jewel.jpg')",
-              backgroundSize: "cover",
-              backgroundPosition: "center",
-              position: "absolute",
-              top: 0,
-              left: 0,
-              width: "100%",
-              height: "100%",
-              opacity: 0.5,
-              filter: "blur(2px)",
-              zIndex: 0,
-            }}
-          />
-          <div style={{ position: "relative", zIndex: 1, padding: "1rem", display: "flex", flexDirection: "column", height: "100%" }}>
-            <div style={{ fontWeight: 700, fontSize: 18, marginBottom: 12, display: "flex", alignItems: "center", gap: 10, color: "#fbbf24" }}>
-              <FaBell /> Incidents
-            </div>
-            <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: 12 }}>
-              {[
-                { id: 1, text: "Chennai - loc 1 - Suspicious behaviour detected" },
-                { id: 2, text: "Madurai - loc 3 - Suspicious behaviour detected" },
-                { id: 3, text: "Madurai - loc 1 - Possible Theft" },
-                { id: 4, text: "Chennai - loc 2 - Overcrowding" },
-              ].map((inc) => (
-                <div
-                  key={inc.id}
-                  style={{
-                    backdropFilter: "blur(8px)",
-                    background: "rgba(31,41,55,0.6)",
-                    borderRadius: 16,
-                    padding: isMobile ? 12 : 14,
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    transition: "all 0.3s ease",
-                    boxShadow: "0 8px 20px rgba(0,0,0,0.3)",
-                    cursor: "pointer",
-                  }}
-                  onMouseOver={(e) => {
-                    e.currentTarget.style.background = "linear-gradient(135deg, #fbbf24aa, #ef4444aa)";
-                    e.currentTarget.style.transform = "scale(1.03)";
-                    e.currentTarget.style.boxShadow = "0 12px 24px rgba(0,0,0,0.4)";
-                  }}
-                  onMouseOut={(e) => {
-                    e.currentTarget.style.background = "rgba(31,41,55,0.6)";
-                    e.currentTarget.style.transform = "scale(1)";
-                    e.currentTarget.style.boxShadow = "0 8px 20px rgba(0,0,0,0.3)";
-                  }}
-                >
-                  <span style={{ fontSize: 15, fontWeight: 600, color: "#f3f4f6" }}>{inc.text}</span>
-                  <div style={{ display: "flex", gap: isMobile ? 8 : 6 }}>
-                    {[
-                      { label: "Snooze", color: "#fbbf24" },
-                      { label: "Escalate", color: "#ef4444" },
-                      { label: "Close", color: "#10b981" },
-                    ].map((btn) => (
-                      <button
-                        key={btn.label}
-                        style={{
-                          background: btn.color,
-                          border: "none",
-                          padding: isMobile ? "8px 14px" : "6px 12px",
-                          borderRadius: 10,
-                          color: "#fff",
-                          fontWeight: 600,
-                          cursor: "pointer",
-                          transition: "all 0.2s ease",
-                          boxShadow: `0 4px 12px ${btn.color}66`,
-                          fontSize: isMobile ? 14 : 12,
-                        }}
-                        onMouseOver={(e) => {
-                          e.currentTarget.style.transform = "scale(1.1)";
-                          e.currentTarget.style.boxShadow = `0 6px 16px ${btn.color}99`;
-                        }}
-                        onMouseOut={(e) => {
-                          e.currentTarget.style.transform = "scale(1)";
-                          e.currentTarget.style.boxShadow = `0 4px 12px ${btn.color}66`;
-                        }}
-                      >
-                        {btn.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
       </div>
+
+      {/* Q2 - Repeat Customers */}
+      <div style={quadrantStyle}>
+        <h3>Repeat Customers</h3>
+        <div style={scrollableContent}>
+          {repeatCustomers.map((cust, idx) => (
+            <div
+              key={idx}
+              style={{
+                display: "flex",
+                gap: "8px",
+                alignItems: "center",
+                padding: "4px",
+                borderRadius: "8px",
+                background: "rgba(255,255,255,0.05)",
+                marginBottom: 4,
+              }}
+            >
+              <img
+                src={cust.snapshot}
+                alt={cust.name}
+                style={{ width: "96px", height: "64px", objectFit: "cover", borderRadius: "6px" }}
+              />
+              <div>
+                <div style={{ fontWeight: "600" }}>{cust.name}</div>
+                <div style={{ fontSize: "0.8rem", color: "#aaa" }}>{cust.time}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Q3 - Action Points */}
+      <div style={quadrantStyle}>
+        <h3>Action Points</h3>
+        <div style={scrollableContent}>
+          {actionPoints.map((item, idx) => (
+            <div
+              key={idx}
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                padding: "4px",
+                borderRadius: "8px",
+                background: "rgba(255,255,255,0.05)",
+                marginBottom: 4,
+              }}
+            >
+              <span style={{ fontSize: "0.9rem" }}>{item}</span>
+              <div style={{ display: "flex", gap: "4px" }}>
+                <button style={{ padding: "2px 6px", borderRadius: "6px", background: "#fbbf24", color: "#fff" }}>Snooze</button>
+                <button style={{ padding: "2px 6px", borderRadius: "6px", background: "#ef4444", color: "#fff" }}>Escalate</button>
+                <button style={{ padding: "2px 6px", borderRadius: "6px", background: "#10b981", color: "#fff" }}>Close</button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Q4 - CCTV Monitoring */}
+      <div style={quadrantStyle}>
+        <h3 style={{ color: "#ffcc00" }}>CCTV Monitoring</h3>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gridTemplateRows: "1fr 1fr",
+            gap: "8px",
+            flex: 1,
+            height: "100%",
+          }}
+        >
+          {cctvFeeds.slice(0, 4).map((feed, idx) => (
+            <iframe
+              key={idx}
+              src={feed + "?autoplay=1&mute=1"}
+              title={`CCTV Feed ${idx + 1}`}
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              style={{
+                width: "100%",
+                height: "100%",      // fills its grid cell
+                borderRadius: 8,
+              }}
+            />
+          ))}
+        </div>
+      </div>
+
     </div>
   );
-}
+};
+
+export default Dashboard;
