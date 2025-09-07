@@ -30,7 +30,7 @@ export default function App() {
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <img src="/src/assets/logo.png" alt="logo" style={{ height: 40 }} />
+          <img src="/assets/logo.png" alt="logo" style={{ height: 40 }} />
           <div>
             <div style={{ fontWeight: 700 }}>PaarvAI Dashboard</div>
             <div style={{ fontSize: 12, color: 'var(--muted)' }}>Face Recognition Command Center</div>
