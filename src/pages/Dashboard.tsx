@@ -149,14 +149,23 @@ export default function Dashboard() {
         {/* Q3: CCTV Playback */}
         <div style={quadrantStyle}>
           <div style={{ fontWeight: 700, marginBottom: 8 }}>Entrance CCTV</div>
-          <video
-            src="https://www.w3schools.com/html/mov_bbb.mp4"
-            style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: 12 }}
-            autoPlay
-            muted
-            loop
-            controls
-          />
+
+          <div style={{ position: "relative", paddingTop: "56.25%", borderRadius: 12, overflow: "hidden" }}>
+            <iframe
+              src="https://www.youtube.com/embed/2gY_H8Qszzs?autoplay=1&mute=1&loop=1&playlist=2gY_H8Qszzs"
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                width: "100%",
+                height: "100%",
+                border: 0,
+              }}
+              allow="autoplay; encrypted-media"
+              allowFullScreen
+              title="CCTV Live Feed"
+            />
+          </div>
         </div>
 
         {/* Q4: Incidents */}
@@ -166,6 +175,7 @@ export default function Dashboard() {
             position: "relative",
             color: "#fff",
             overflow: "hidden",
+            backgroundColor: "#1f2937", // dark base if image fails
           }}
         >
           {/* Background Image */}
@@ -179,7 +189,8 @@ export default function Dashboard() {
               left: 0,
               width: "100%",
               height: "100%",
-              opacity: 0.6,        // slightly transparent
+              opacity: 0.5,        // subtle transparency
+              filter: "blur(2px)", // soft blur for depth
               zIndex: 0,
             }}
           />
@@ -189,17 +200,18 @@ export default function Dashboard() {
             <div
               style={{
                 fontWeight: 700,
-                fontSize: 18,
-                marginBottom: 12,
+                fontSize: 20,
+                marginBottom: 16,
                 display: "flex",
                 alignItems: "center",
-                gap: 8,
+                gap: 10,
+                color: "#fbbf24",
               }}
             >
               <FaBell /> Incidents
             </div>
 
-            <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: 8 }}>
+            <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: 12 }}>
               {[
                 { id: 1, text: "Chennai - loc 1 - Suspicious behaviour detected" },
                 { id: 2, text: "Madurai - loc 3 - Suspicious behaviour detected" },
@@ -209,25 +221,30 @@ export default function Dashboard() {
                 <div
                   key={inc.id}
                   style={{
-                    backdropFilter: "blur(6px)", // glass effect
-                    background: "rgba(255,255,255,0.1)",
-                    borderRadius: 14,
-                    padding: 10,
+                    backdropFilter: "blur(8px)",
+                    background: "rgba(31,41,55,0.6)", // dark glass effect
+                    borderRadius: 16,
+                    padding: 14,
                     display: "flex",
                     justifyContent: "space-between",
                     alignItems: "center",
                     transition: "all 0.3s ease",
+                    boxShadow: "0 8px 20px rgba(0,0,0,0.3)",
+                    cursor: "pointer",
                   }}
                   onMouseOver={(e) => {
-                    e.currentTarget.style.background = "linear-gradient(135deg, rgba(251,191,36,0.2), rgba(255,255,255,0.15))";
-                    e.currentTarget.style.transform = "scale(1.02)";
+                    e.currentTarget.style.background = "linear-gradient(135deg, #fbbf24aa, #ef4444aa)";
+                    e.currentTarget.style.transform = "scale(1.03)";
+                    e.currentTarget.style.boxShadow = "0 12px 24px rgba(0,0,0,0.4)";
                   }}
                   onMouseOut={(e) => {
-                    e.currentTarget.style.background = "rgba(255,255,255,0.1)";
+                    e.currentTarget.style.background = "rgba(31,41,55,0.6)";
                     e.currentTarget.style.transform = "scale(1)";
+                    e.currentTarget.style.boxShadow = "0 8px 20px rgba(0,0,0,0.3)";
                   }}
                 >
-                  <span style={{ fontSize: 14 }}>{inc.text}</span>
+                  <span style={{ fontSize: 15, fontWeight: 600, color: "#f3f4f6" }}>{inc.text}</span>
+
                   <div style={{ display: "flex", gap: 6 }}>
                     {[
                       { label: "Snooze", color: "#fbbf24" },
@@ -237,17 +254,24 @@ export default function Dashboard() {
                       <button
                         key={btn.label}
                         style={{
-                          background: "rgba(255,255,255,0.15)",
-                          border: "1px solid rgba(255,255,255,0.3)",
-                          padding: "4px 10px",
-                          borderRadius: 8,
-                          color: btn.color,
+                          background: btn.color,
+                          border: "none",
+                          padding: "6px 12px",
+                          borderRadius: 10,
+                          color: "#fff",
                           fontWeight: 600,
                           cursor: "pointer",
-                          transition: "0.2s",
+                          transition: "all 0.2s ease",
+                          boxShadow: `0 4px 12px ${btn.color}66`,
                         }}
-                        onMouseOver={(e) => (e.currentTarget.style.background = `${btn.color}33`)} // semi-transparent hover
-                        onMouseOut={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.15)")}
+                        onMouseOver={(e) => {
+                          e.currentTarget.style.transform = "scale(1.1)";
+                          e.currentTarget.style.boxShadow = `0 6px 16px ${btn.color}99`;
+                        }}
+                        onMouseOut={(e) => {
+                          e.currentTarget.style.transform = "scale(1)";
+                          e.currentTarget.style.boxShadow = `0 4px 12px ${btn.color}66`;
+                        }}
                       >
                         {btn.label}
                       </button>
