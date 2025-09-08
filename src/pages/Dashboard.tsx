@@ -36,15 +36,19 @@ const repeatCustomers = [
   { name: "Priya Reddy", time: "2:10 pm", snapshot: "https://picsum.photos/120/80?random=6" },
 ];
 
-// Action Points
-const actionPoints = [
-  "Component changeover time 129% above benchmark",
-  "Cycle time deviating 11% over benchmark",
-  "PLY 1 inventory low (26 min left)",
-  "Temperature sensor alert in Zone 3",
-  "Maintenance required for Conveyor B",
-  "Unexpected delay in shipment #4521",
+// Replace Action Points with Incidents + severity tags
+const incidents = [
+  { text: "Chennai - loc 1 - Suspicious behaviour detected", severity: "suspicious" },
+  { text: "Madurai - loc 3 - Suspicious behaviour detected", severity: "suspicious" },
+  { text: "Madurai - loc 1 - Possible Theft", severity: "critical" },
+  { text: "Chennai - loc 2 - Overcrowding", severity: "moderate" },
 ];
+
+const severityColors: Record<string, string> = {
+  suspicious: "#f97316", // orange
+  moderate: "#fbbf24",   // yellow
+  critical: "#ef4444",   // red
+};
 
 // CCTV feeds
 const cctvFeeds = [
@@ -214,28 +218,56 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Q3 - Action Points */}
+      {/* Q3 - Incidents */}
       <div style={quadrantStyle}>
-        <h3>Action Points</h3>
+        <h3>Incidents</h3>
         <div style={scrollableContent}>
-          {actionPoints.map((item, idx) => (
+          {incidents.map((item, idx) => (
             <div
               key={idx}
               style={{
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
-                padding: "4px",
+                padding: "6px 8px",
                 borderRadius: "8px",
                 background: "rgba(255,255,255,0.05)",
-                marginBottom: 4,
+                marginBottom: 6,
+                borderLeft: `4px solid ${severityColors[item.severity]}`,
               }}
             >
-              <span style={{ fontSize: "0.9rem" }}>{item}</span>
+              <span style={{ fontSize: "0.9rem" }}>{item.text}</span>
               <div style={{ display: "flex", gap: "4px" }}>
-                <button style={{ padding: "2px 6px", borderRadius: "6px", background: "#fbbf24", color: "#fff" }}>Snooze</button>
-                <button style={{ padding: "2px 6px", borderRadius: "6px", background: "#ef4444", color: "#fff" }}>Escalate</button>
-                <button style={{ padding: "2px 6px", borderRadius: "6px", background: "#10b981", color: "#fff" }}>Close</button>
+                <button
+                  style={{
+                    padding: "2px 6px",
+                    borderRadius: "6px",
+                    background: "#fbbf24",
+                    color: "#fff",
+                  }}
+                >
+                  Snooze
+                </button>
+                <button
+                  style={{
+                    padding: "2px 6px",
+                    borderRadius: "6px",
+                    background: "#ef4444",
+                    color: "#fff",
+                  }}
+                >
+                  Escalate
+                </button>
+                <button
+                  style={{
+                    padding: "2px 6px",
+                    borderRadius: "6px",
+                    background: "#10b981",
+                    color: "#fff",
+                  }}
+                >
+                  Close
+                </button>
               </div>
             </div>
           ))}
